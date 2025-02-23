@@ -9,10 +9,10 @@
     <form method="post" action="/Home/ConvertCurrency">
 
         @Html.AntiForgeryToken()
-            <div class="mb-3">
-                <label for="amount" class="form-label">Amount to convert</label>
-                <input type="number" step="0.01" class="form-control" id="amount" name="OriginalValue" asp-for="OriginalValue" required>
-            </div>
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount to convert</label>
+            <input type="number" step="0.01" class="form-control" id="amount" name="OriginalValue" asp-for="OriginalValue" required>
+        </div>
 
 
         <div class="mb-3">
@@ -34,6 +34,11 @@
                 }
             </select>
 
+        </div>
+        <div>
+            <label for="conversionDate" class="form-label">Date to check currency rate</label>
+            <input type="date" class="form-control" id="conversionDate" name="ConversionDate" asp-for="ConversionDate" required />
+            <span class="text-danger">@Html.ValidationMessageFor(model => model.ConversionDate)</span>
         </div>
 
         <button type="submit" class="btn btn-primary">Convert</button>

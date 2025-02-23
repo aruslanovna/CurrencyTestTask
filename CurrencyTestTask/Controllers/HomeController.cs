@@ -8,15 +8,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Configuration;
 
+
 namespace CurrencyTestTask.Controllers
 {
     public class HomeController : Controller
     {
         private HttpClient _httpClient = new HttpClient();
-
+        private readonly string url;
         public HomeController()
         {
-
+            url = "https://data.fixer.io/api/";
         }
 
         [HttpGet]
@@ -49,6 +50,12 @@ namespace CurrencyTestTask.Controllers
             {
                 model.ConvertedValue = model.OriginalValue;
             }
+            if (model.ConversionDate != null)
+            {
+                var currencyFrom = await GetCurrencyRate(model.CurrencyFrom, model.ConversionDate);
+                var currencyTo = await GetCurrencyRate(model.CurrencyTo, model.ConversionDate);
+                model.ConvertedValue = GetConvertedValue(currencyFrom, currencyTo, model.OriginalValue);
+            }
             else
             {
                 var currencyFrom = await GetCurrencyRate(model.CurrencyFrom);
@@ -69,38 +76,69 @@ namespace CurrencyTestTask.Controllers
             return currencyRate;
         }
 
-        private async Task<CurrencyResponse> GetResponse()
-        {
-            string apiKey = GetApiKey();
-            await Task.Delay(1000);
-            string json = await _httpClient.GetStringAsync($"http://api.currencylayer.com/live?access_key={apiKey}");
-
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                throw new Exception("API response was empty.");
-            }
-
-            var currencyResponse = JsonConvert.DeserializeObject<CurrencyResponse>(json);
-
-            if (currencyResponse == null || !currencyResponse.Success)
-            {
-                throw new Exception("API request failed or exceeded rate limits.");
-            }
-
-            return currencyResponse;
-        }
-
-        private async Task<decimal> GetCurrencyRate(string currencyName)
+        private async Task<CurrencyResponse> GetResponse(DateTime? date = null)
         {
             try
             {
-                if (currencyName == "USD")
+                var apiKey = GetApiKey();
+                Uri requestUrl;
+
+                await Task.Delay(500);
+
+                var queryParams = new Dictionary<string, string>
+                    {
+                        { "access_key", apiKey }
+                    };
+                if (date != null)
+                {
+                    requestUrl = url.UriCombine(String.Format("{0:yyyy-MM-dd}", date));
+                }
+                else
+                {
+                    requestUrl = url.UriCombine("latest");
+                }
+                string fullUrl = requestUrl + ToQueryString(queryParams);
+
+                string json = await _httpClient.GetStringAsync(fullUrl);
+
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    throw new Exception("API response was empty.");
+                }
+
+                var currencyResponse = JsonConvert.DeserializeObject<CurrencyResponse>(json);
+
+                if (currencyResponse == null || !currencyResponse.Success)
+                {
+                    throw new Exception("API request failed or exceeded rate limits.");
+                }
+
+                return currencyResponse;
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Error fetching currency data: " + ex.Message);
+                return null;
+            }
+        }
+
+        private string ToQueryString(Dictionary<string, string> requestParams)
+        {
+            var paramsAsString = "?" + string.Join("&", requestParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+            return paramsAsString;
+        }
+
+        private async Task<decimal> GetCurrencyRate(string currencyName, DateTime? conversionDate = null)
+        {
+            try
+            {
+                if (currencyName == "EUR")
                 {
                     return 1;
                 }
 
-                var currencyResponse = await GetResponse();
-                var rate = currencyResponse.Quotes.Where(x => x.Key.EndsWith(currencyName)).Select(x => x.Value).First();
+                var currencyResponse = await GetResponse(conversionDate);
+                var rate = currencyResponse.Rates.Where(x => x.Key.Equals(currencyName)).Select(x => x.Value).First();
 
                 return rate;
             }
@@ -115,13 +153,13 @@ namespace CurrencyTestTask.Controllers
         {
             var currencyResponse = await GetResponse();
 
-            if (currencyResponse?.Quotes != null)
+            if (currencyResponse?.Rates != null)
             {
                 var currencies = new List<string>();
-                currencies.Add(currencyResponse.Source);
-                foreach (var key in currencyResponse.Quotes.Keys)
+                currencies.Add(currencyResponse.Base);
+                foreach (var key in currencyResponse.Rates.Keys)
                 {
-                    string currencyCode = key.Substring(3);
+                    string currencyCode = key;
                     currencies.Add(currencyCode);
                 }
 

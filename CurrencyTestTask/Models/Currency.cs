@@ -1,17 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
+using System.Net.Http;
+using System.Net;
 
 namespace CurrencyExchange.Models
 {
-    //public class Currency
-    //{
-    //    public decimal OriginalValue { get; set; }
-    //    public decimal? ConvertedValue { get; set; }
-    //    public CurrencyEnum CurrencyFrom { get; set; }
-    //    public CurrencyEnum CurrencyTo { get; set; }
-    //    public decimal ConversionRate { get; set; }
-    //}
-
     public class Currency
     {
         [Required]
@@ -28,15 +23,8 @@ namespace CurrencyExchange.Models
         public decimal? ConvertedValue { get; set; }
 
         public List<string> Currencies { get; set; } = new List<string>();
-    }
 
-
-    public enum CurrencyEnum
-    {
-        USD,
-        EUR,
-        GBP,
-        NOK
+        public DateTime? ConversionDate { get; set; }
     }
 
     public class CurrencyResponse
@@ -46,6 +34,10 @@ namespace CurrencyExchange.Models
         public string Privacy { get; set; }
         public long Timestamp { get; set; }
         public string Source { get; set; }
-        public Dictionary<string, decimal> Quotes { get; set; }
+        public string Base { get; set; }
+        public bool Historical { get; set; } = false;
+        public DateTime? Date { get; set; }
+        public Dictionary<string, decimal> Rates { get; set; }
     }
 }
+
