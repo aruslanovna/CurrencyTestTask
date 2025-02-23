@@ -19,5 +19,9 @@ namespace CurrencyTestTask
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
         }
+        protected void Application_Start()
+        {
+            RegisterRoutes(RouteTable.Routes);
+        }
     }
 }

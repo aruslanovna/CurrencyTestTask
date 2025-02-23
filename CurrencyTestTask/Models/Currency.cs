@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CurrencyExchange.Models
 {
@@ -13,10 +14,19 @@ namespace CurrencyExchange.Models
 
     public class Currency
     {
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]
         public decimal OriginalValue { get; set; }
+
+        [Required]
         public string CurrencyFrom { get; set; }
+
+        [Required]
         public string CurrencyTo { get; set; }
+        public string Message { get; set; }
+
         public decimal? ConvertedValue { get; set; }
+
         public List<string> Currencies { get; set; } = new List<string>();
     }
 
