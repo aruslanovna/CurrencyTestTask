@@ -35,6 +35,8 @@ namespace CurrencyTestTask.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ConvertCurrency(Currency model)
         {
+            List<string> currencyList = await GetCurrencies();
+            model.Currencies = currencyList;
             if (!ModelState.IsValid)
             {
                 return View("Index", model);
@@ -62,9 +64,6 @@ namespace CurrencyTestTask.Controllers
                 var currencyTo = await GetCurrencyRate(model.CurrencyTo);
                 model.ConvertedValue = GetConvertedValue(currencyFrom, currencyTo, model.OriginalValue);
             }
-
-            List<string> currencyList = await GetCurrencies();
-            model.Currencies = currencyList;
 
             return View("Index", model);
         }

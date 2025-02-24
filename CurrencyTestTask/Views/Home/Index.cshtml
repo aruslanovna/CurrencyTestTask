@@ -1,19 +1,60 @@
 ﻿@model CurrencyExchange.Models.Currency
+
 @{
     ViewData["Title"] = "Currency Exchange";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Currency Exchange</h1>
+<style>
+    body {
+        background-color: #f4f7f6;
+    }
+
+    .container {
+        max-width: 500px;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #005f3b;
+        text-align: left;
+    }
+
+    .btn-primary {
+        background-color: #005f3b;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #004529;
+        }
+
+    .input-group-text {
+        background-color: #005f3b;
+        color: white;
+        border: none;
+    }
+</style>
+
+<div class="container mt-5">
+    <h1 class="text-center" style="color: #005f3b;">Currency Exchange</h1>
 
     <form method="post" action="/Home/ConvertCurrency">
-
         @Html.AntiForgeryToken()
+
         <div class="mb-3">
             <label for="amount" class="form-label">Amount to convert</label>
-            <input type="number" step="0.01" class="form-control" id="amount" name="OriginalValue" asp-for="OriginalValue" required>
-        </div>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" step="0.01" class="form-control" id="amount"
+                       name="OriginalValue" asp-for="OriginalValue" required>
+                <span class="text-danger">@Html.ValidationMessageFor(model => model.OriginalValue)</span>
 
+            </div>
+        </div>
 
         <div class="mb-3">
             <label for="currencyFrom" class="form-label">From</label>
@@ -30,25 +71,25 @@
             <select class="form-select" id="currencyTo" name="CurrencyTo" asp-for="CurrencyTo">
                 @for (int i = 0; i < Model.Currencies.Count; i++)
                 {
-                    <option value="@Model.Currencies[i]" selected="@(Model.CurrencyTo != null && Model.Currencies[i] == Model.CurrencyTo? "selected" : i == 1 ? "selected" :  null)">@Model.Currencies[i]</option>
+                    <option value="@Model.Currencies[i]" selected="@(Model.CurrencyTo != null && Model.Currencies[i] == Model.CurrencyTo ? "selected" : i == 1 ? "selected" : null)">@Model.Currencies[i]</option>
                 }
             </select>
-
         </div>
-        <div>
+
+        <div class="mb-3">
             <label for="conversionDate" class="form-label">Date to check currency rate</label>
-            <input type="date" class="form-control" id="conversionDate" name="ConversionDate" asp-for="ConversionDate" required />
+            <input type="date" class="form-control" id="conversionDate" name="ConversionDate" asp-for="ConversionDate" />
             <span class="text-danger">@Html.ValidationMessageFor(model => model.ConversionDate)</span>
         </div>
 
-        <button type="submit" class="btn btn-primary">Convert</button>
+        <button type="submit" class="btn btn-primary w-100">Convert</button>
     </form>
 
     @if (@Model.ConvertedValue.HasValue)
     {
-        <div class="mt-4">
-            <label for="message" asp-for="Message" class="form-label"></label>
-            <h3>Converted Amount: @Model.ConvertedValue.Value.ToString("N2") @Model.CurrencyTo</h3>
+        <div class="mt-4 text-center">
+            <label asp-for="Message" class="form-label">Converted Amount: from @Model.OriginalValue @Model.CurrencyFrom</label>
+            <h3 style="color: #005f3b;">@Model.ConvertedValue.Value.ToString("N2") @Model.CurrencyTo</h3>
         </div>
     }
 </div>
